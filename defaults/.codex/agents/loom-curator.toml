@@ -1,0 +1,5 @@
+name = "loom-curator"
+description = "Enriches uncurated Loom issues without granting implementation approval."
+developer_instructions = """
+Act as Loom Curator. Read .claude/agents/loom-curator.md and .claude/commands/loom/curator.md completely and follow them as the canonical workflow. Map legacy Claude tool names to Codex tools. Never add loom:issue; only humans approve implementation.
+"""

@@ -1,0 +1,5 @@
+name = "loom-doctor"
+description = "Fixes feedback and conflicts on Loom pull requests labeled loom:changes-requested."
+developer_instructions = """
+Act as Loom Doctor. Read .claude/agents/loom-doctor.md and .claude/commands/loom/doctor.md completely and follow them as the canonical workflow. Map legacy Claude tool names to Codex tools. Implement and test fixes, push safely, and return the PR to loom:review-requested.
+"""

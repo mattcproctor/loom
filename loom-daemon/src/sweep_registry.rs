@@ -89,8 +89,8 @@ pub struct SweepRegistryConfig {
     /// Absolute path to the workspace root (parent of `.loom/`).
     pub workspace_root: PathBuf,
     /// Optional override for the spawn binary. Defaults to
-    /// `<workspace_root>/defaults/scripts/spawn-claude.sh` or, if absent,
-    /// `<workspace_root>/.loom/scripts/spawn-claude.sh`.
+    /// `<workspace_root>/defaults/scripts/spawn-codex.sh` or, if absent,
+    /// `<workspace_root>/.loom/scripts/spawn-codex.sh`.
     pub spawn_bin: Option<PathBuf>,
     /// Override the `gh` binary (for tests). Defaults to `gh` from `PATH`.
     pub gh_bin: Option<PathBuf>,
@@ -114,8 +114,8 @@ impl SweepRegistryConfig {
     /// Resolve the spawn binary, preferring (in order):
     /// 1. `spawn_bin` explicit override.
     /// 2. `LOOM_SWEEP_SPAWN_BIN` env var.
-    /// 3. `<workspace>/.loom/scripts/spawn-claude.sh`.
-    /// 4. `<workspace>/defaults/scripts/spawn-claude.sh`.
+    /// 3. `<workspace>/.loom/scripts/spawn-codex.sh`.
+    /// 4. `<workspace>/defaults/scripts/spawn-codex.sh`.
     pub fn resolve_spawn_bin(&self) -> Result<PathBuf> {
         if let Some(ref p) = self.spawn_bin {
             return Ok(p.clone());
@@ -127,7 +127,7 @@ impl SweepRegistryConfig {
             .workspace_root
             .join(".loom")
             .join("scripts")
-            .join("spawn-claude.sh");
+            .join("spawn-codex.sh");
         if installed.exists() {
             return Ok(installed);
         }
@@ -135,12 +135,21 @@ impl SweepRegistryConfig {
             .workspace_root
             .join("defaults")
             .join("scripts")
-            .join("spawn-claude.sh");
+            .join("spawn-codex.sh");
         if defaults.exists() {
             return Ok(defaults);
         }
+        // Compatibility fallback for older installations and test fixtures.
+        for legacy in [
+            self.workspace_root.join(".loom/scripts/spawn-claude.sh"),
+            self.workspace_root.join("defaults/scripts/spawn-claude.sh"),
+        ] {
+            if legacy.exists() {
+                return Ok(legacy);
+            }
+        }
         Err(anyhow!(
-            "spawn-claude.sh not found under {} (looked in .loom/scripts and defaults/scripts; \
+            "no Codex or legacy Claude spawn script found under {} (looked in .loom/scripts and defaults/scripts; \
              set {SPAWN_BIN_ENV} to override)",
             self.workspace_root.display()
         ))

@@ -1,12 +1,14 @@
-# Loom
+# Loomdex
 
 [![codecov](https://codecov.io/gh/rjwalters/loom/branch/main/graph/badge.svg)](https://codecov.io/gh/rjwalters/loom)
 [![GitHub Release](https://img.shields.io/github/v/release/rjwalters/loom?include_prereleases)](https://github.com/rjwalters/loom/releases)
 [![Lines of Code](https://raw.githubusercontent.com/rjwalters/loom/ghloc/.ghloc/badge.svg)](https://github.com/rjwalters/loom)
 
-**AI-powered development orchestration using your forge as the coordination layer.**
+**Codex-powered development orchestration using your forge as the coordination layer.**
 
-Loom spawns AI agents that claim issues, implement features, review PRs, and merge code -- all coordinated through labels. Your only job: write issues, review PRs, merge what you like.
+Loomdex spawns Codex agents that claim issues, implement features, review PRs, and merge code -- all coordinated through labels. Your only job: write issues, review PRs, and merge what you like.
+
+This fork adds Codex-native skills, custom role agents, `AGENTS.md` discovery, and `codex exec` daemon dispatch. The existing `.claude` workflow documents remain the canonical role specifications during the transition and are consumed by the Codex skills; Claude compatibility is retained for existing installations.
 
 **Supported Forges**: GitHub | Gitea — Loom auto-detects your forge from the git remote URL. A ForgeClient abstraction layer makes the workflow identical regardless of forge.
 
@@ -14,14 +16,14 @@ Loom spawns AI agents that claim issues, implement features, review PRs, and mer
 
 ```bash
 # Clone and install to your repository
-git clone https://github.com/rjwalters/loom
+git clone https://github.com/mattcproctor/loom
 cd loom
 ./install.sh /path/to/your/repo
 
-# Start autonomous development on a single issue from Claude Code
+# Start autonomous development on a single issue from Codex
 cd /path/to/your/repo
-# In Claude Code:
-/loom:sweep 42
+# In Codex:
+$loom-sweep 42
 ```
 
 For multi-issue autonomous batches, start the spawn loop instead:
@@ -113,7 +115,7 @@ See [Forge Authentication](.loom/docs/forge-authentication.md) for setup details
 - macOS (Linux support planned)
 - Git repository
 - tmux (`brew install tmux`)
-- [Claude Code](https://claude.ai/code) for AI agents
+- [Codex CLI](https://developers.openai.com/codex/cli) for AI agents
 
 ### Install Options
 
@@ -135,9 +137,10 @@ your-repo/
 │   ├── config.json      # Terminal configuration
 │   ├── roles/           # Agent role definitions
 │   └── scripts/         # Helper scripts
-├── .claude/commands/loom/  # Slash commands
+├── .agents/skills/       # Codex Loom skills
+├── .codex/agents/        # Codex role agents
 ├── .github/labels.yml   # Workflow labels
-└── CLAUDE.md            # AI context document
+└── AGENTS.md            # Codex context document
 ```
 
 ## Usage

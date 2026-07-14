@@ -158,7 +158,7 @@ LOGFILE="$LOOM_DIR/logs/spawn-loop.log"
 LOCKS_DIR="$LOOM_DIR/locks"
 CHECKPOINT_DIR="$LOOM_DIR/sweep-checkpoint"
 DAEMON_PIDFILE="$LOOM_DIR/daemon-loop.pid"
-SPAWN_CLAUDE="$REPO_ROOT/.loom/scripts/spawn-claude.sh"
+SPAWN_CLAUDE="$REPO_ROOT/.loom/scripts/spawn-codex.sh"
 
 # Defaults (overridable via env)
 MAX_PARALLEL="${MAX_PARALLEL:-3}"
@@ -424,7 +424,7 @@ spawn_sweep() {
     mkdir -p "$(dirname "$log_path")"
 
     if [[ ! -x "$SPAWN_CLAUDE" ]]; then
-        log_error "spawn-claude.sh not executable at $SPAWN_CLAUDE"
+        log_error "spawn-codex.sh not executable at $SPAWN_CLAUDE"
         return 1
     fi
 

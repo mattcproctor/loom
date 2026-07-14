@@ -1,6 +1,6 @@
 //! Repository scaffolding setup
 //!
-//! Sets up CLAUDE.md, .claude/, .codex/, and .github/ directories.
+//! Sets up agent guidance and configuration for Codex and Claude.
 
 use std::collections::HashSet;
 use std::fs;
@@ -756,6 +756,25 @@ pub fn setup_repository_scaffolding(
         ".codex",
         report,
     )?;
+
+    // Copy repository-scoped Codex skills.
+    copy_directory(
+        &defaults_path.join(".agents"),
+        &workspace_path.join(".agents"),
+        ".agents",
+        report,
+    )?;
+
+    // Preserve an existing project AGENTS.md; otherwise install Loom guidance.
+    let agents_md_src = defaults_path.join("AGENTS.md");
+    let agents_md_dst = workspace_path.join("AGENTS.md");
+    if agents_md_src.exists() && !agents_md_dst.exists() {
+        fs::copy(&agents_md_src, &agents_md_dst)
+            .map_err(|e| format!("Failed to copy AGENTS.md: {e}"))?;
+        report.added.push("AGENTS.md".to_string());
+    } else if agents_md_dst.exists() {
+        report.preserved.push("AGENTS.md".to_string());
+    }
 
     // Copy .github/ directory
     copy_directory(
