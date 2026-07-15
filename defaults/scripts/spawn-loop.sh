@@ -3,14 +3,14 @@
 #
 # Phase 1 of the shepherd/daemon deprecation epic (#3372). Replaces the
 # ~4,200 LOC Python daemon brain (`daemon_v2/`) with a ~200-LOC bash poller
-# that does only the load-bearing thing: launch one `claude -p "/loom:sweep N"`
-# per ready issue, with token rotation via spawn-claude.sh.
+# that does only the load-bearing thing: launch one Codex `$loom-sweep N`
+# process per ready issue, with optional CODEX_HOME profile distribution.
 #
 # What this script does:
 #   1. Polls `gh issue list --label loom:issue --state open --limit 50`.
 #   2. While `len(running) < MAX_PARALLEL`, atomically claims the next ready
 #      issue (label flip + mkdir-based file lock under `.loom/locks/issue-<N>/`)
-#      and detaches `spawn-claude.sh -p "/loom:sweep <N>"`. Each spawned process
+#      and detaches `spawn-codex.sh -p "/loom:sweep <N>"`. Each spawned process
 #      picks its own token from `.loom/tokens/.ranking`.
 #   3. Sleeps POLL_INTERVAL seconds, then reaps exited children.
 #   4. If a child dies but the issue is still `loom:building` AND a sweep
@@ -125,7 +125,7 @@ This script is deprecated and scheduled for DELETION in v0.11.0. The
 multi-account dispatch surface has moved to the Rust `loom-daemon` binary
 and its MCP tools.
 
-  Migration: use `mcp__loom__dispatch_sweep` from a Claude Code session, or
+  Migration: use `mcp__loom__dispatch_sweep` from a Codex session, or
              let `/loom:sweep <issue>` auto-detect the daemon (Stage -1
              backend probe — see defaults/.claude/commands/loom/sweep.md).
 
@@ -158,7 +158,7 @@ LOGFILE="$LOOM_DIR/logs/spawn-loop.log"
 LOCKS_DIR="$LOOM_DIR/locks"
 CHECKPOINT_DIR="$LOOM_DIR/sweep-checkpoint"
 DAEMON_PIDFILE="$LOOM_DIR/daemon-loop.pid"
-SPAWN_CLAUDE="$REPO_ROOT/.loom/scripts/spawn-codex.sh"
+SPAWN_CODEX="$REPO_ROOT/.loom/scripts/spawn-codex.sh"
 
 # Defaults (overridable via env)
 MAX_PARALLEL="${MAX_PARALLEL:-3}"
@@ -423,8 +423,8 @@ spawn_sweep() {
     local log_path="$LOOM_DIR/logs/sweep-issue-${issue}.log"
     mkdir -p "$(dirname "$log_path")"
 
-    if [[ ! -x "$SPAWN_CLAUDE" ]]; then
-        log_error "spawn-codex.sh not executable at $SPAWN_CLAUDE"
+    if [[ ! -x "$SPAWN_CODEX" ]]; then
+        log_error "spawn-codex.sh not executable at $SPAWN_CODEX"
         return 1
     fi
 
@@ -435,18 +435,15 @@ spawn_sweep() {
     } >> "$log_path" 2>/dev/null || true
 
     # Detach with setsid-equivalent (bash &) so the child survives the loop's
-    # next iteration and we can simply track its PID. spawn-claude.sh handles
-    # token selection; we record whatever it picked via the LOOM_TOKEN_NAME env
-    # hint if available, otherwise "unknown".
+    # next iteration and we can simply track its PID. spawn-codex.sh optionally
+    # selects an authenticated CODEX_HOME profile.
     LOOM_TERMINAL_ID="spawn-$$-${issue}" \
-        nohup "$SPAWN_CLAUDE" -p "/loom:sweep ${issue}" \
+        nohup "$SPAWN_CODEX" -p "/loom:sweep ${issue}" \
         >> "$log_path" 2>&1 &
     local pid=$!
 
-    # Token is selected inside spawn-claude.sh; we don't know which one without
-    # parsing the child's stderr. Record "unknown" — token attribution lives in
-    # the per-issue log file and the bad-tokens manifest, not in spawn-loop
-    # state.
+    # Account attribution is logged by spawn-codex.sh. Keep the legacy state
+    # field as "unknown" because it cannot safely expose credential details.
     #
     # `$log_path` is also recorded as the entry's `output_file` so downstream
     # consumers (loom-completions, #3393) can detect silent failures without

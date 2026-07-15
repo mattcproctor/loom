@@ -1,7 +1,7 @@
 {
-  "name": "loom",
+  "name": "loomdex",
   "version": "0.10.6",
-  "description": "AI-powered development orchestration: a CLI + daemon that coordinates AI development workers using git worktrees and a forge (GitHub or Gitea) as the coordination layer.",
+  "description": "Codex-native Loom orchestration using git worktrees and GitHub or Gitea as the coordination layer.",
   "type": "module",
   "scripts": {
     "daemon:dev": "./scripts/dev-daemon.sh",
@@ -19,6 +19,7 @@
     "clippy:fix": "cargo clippy --workspace --all-targets --all-features --fix --allow-dirty --allow-staged",
     "test": "cargo test --workspace --locked --all-features --no-fail-fast -- --nocapture",
     "test:python": "cd loom-tools && uv run pytest tests/ -x -q",
+    "test:codex": "./scripts/check-codex-parity.sh && ./scripts/test-spawn-codex.sh",
     "check:all": "pnpm format:rust && pnpm clippy && pnpm check && pnpm test",
     "check:ci": "pnpm format:rust && pnpm clippy:locked && pnpm check && pnpm test && pnpm test:python",
     "worktree": "./scripts/worktree.sh",
@@ -28,13 +29,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rjwalters/loom.git"
+    "url": "git+https://github.com/mattcproctor/loom.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/rjwalters/loom/issues"
+    "url": "https://github.com/mattcproctor/loom/issues"
   },
-  "homepage": "https://github.com/rjwalters/loom#readme"
+  "homepage": "https://github.com/mattcproctor/loom#readme"
 }

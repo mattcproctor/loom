@@ -1,0 +1,20 @@
+name: Loom Champion
+on:
+  # schedule:
+  #   - cron: "*/10 * * * *"
+  workflow_dispatch:
+jobs:
+  champion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions: { contents: write, issues: write, pull-requests: write }
+    steps:
+      - uses: actions/checkout@v7
+      - uses: openai/codex-action@v1
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          prompt: Use $loom to run one Champion tick. Preserve every approval, CI, label, and merge gate.
+          effort: high
+          sandbox: danger-full-access

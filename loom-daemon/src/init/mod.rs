@@ -1256,6 +1256,48 @@ mod tests {
     }
 
     #[test]
+    fn test_real_defaults_tree_ships_complete_codex_surface() {
+        let defaults = Path::new(env!("CARGO_MANIFEST_DIR")).join("../defaults");
+
+        for role in [
+            "architect",
+            "auditor",
+            "builder",
+            "champion",
+            "curator",
+            "doctor",
+            "driver",
+            "guide",
+            "hermit",
+            "judge",
+            "orchestrator",
+        ] {
+            let agent = defaults
+                .join(".codex/agents")
+                .join(format!("loom-{role}.toml"));
+            assert!(agent.is_file(), "missing Codex role agent: {}", agent.display());
+        }
+
+        for skill in ["loom", "loom-sweep"] {
+            let path = defaults.join(".agents/skills").join(skill).join("SKILL.md");
+            assert!(path.is_file(), "missing Codex skill: {}", path.display());
+        }
+
+        assert!(defaults.join("AGENTS.md").is_file());
+        assert!(defaults.join("scripts/spawn-codex.sh").is_file());
+
+        for role in ["auditor", "champion", "curator", "guide", "judge"] {
+            let workflow = defaults
+                .join(".github/workflows")
+                .join(format!("loom-{role}.yml"));
+            assert!(workflow.is_file(), "missing Codex workflow: {}", workflow.display());
+            let body = fs::read_to_string(&workflow).unwrap_or_default();
+            assert!(body.contains("openai/codex-action@v1"));
+            assert!(!body.contains("@anthropic-ai/claude-code"));
+        }
+    }
+
+    #[test]
     fn test_filter_preserved_from_verification_failures_removes_preserved() {
         // Files preserved by merge strategy must not appear as verification failures
         // (this is the regression case from issue #3218).

@@ -7,7 +7,9 @@ This directory contains default configuration files and templates for Loom works
 - `config.json` - Default configuration for new workspaces
 - `roles/` - System prompt templates for different terminal roles
 - `CLAUDE.md` - AI development context template (copied to workspace root)
-- `.claude/` - Claude Code configuration template (copied to workspace root)
+- `.agents/` - Codex repository skills (copied to workspace root)
+- `.codex/` - Codex custom role agents (copied to workspace root)
+- `.claude/` - Canonical workflow specifications and Claude compatibility
 - `.github/` - GitHub labels and issue templates (copied to workspace root)
   - `ISSUE_TEMPLATE/task.yml` - Development task template
   - `ISSUE_TEMPLATE/config.yml` - Issue template configuration
@@ -39,7 +41,8 @@ loom-daemon init --defaults /path/to/custom-defaults /path/to/repo
 2. Copies this entire `defaults/` directory to `.loom/`
 3. Copies scaffolding files to workspace root:
    - `CLAUDE.md` - AI development context
-   - `.claude/` - Claude Code configuration
+   - `.agents/` and `.codex/` - Codex skills and role agents
+   - `.claude/` - Canonical workflows and Claude compatibility
    - `.github/` - GitHub labels and issue templates
 4. Updates `.gitignore` with Loom ephemeral patterns
 

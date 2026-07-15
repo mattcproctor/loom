@@ -1,0 +1,20 @@
+name: Loom Judge
+on:
+  # schedule:
+  #   - cron: "*/5 * * * *"
+  workflow_dispatch:
+jobs:
+  judge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions: { contents: read, issues: write, pull-requests: write }
+    steps:
+      - uses: actions/checkout@v7
+      - uses: openai/codex-action@v1
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          prompt: Use $loom to run one Judge tick. Continue until every currently eligible PR has a workflow-compliant outcome.
+          effort: high
+          sandbox: danger-full-access

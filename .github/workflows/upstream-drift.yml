@@ -1,0 +1,57 @@
+name: Upstream Loom Drift
+
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Check Codex adapter parity
+        run: ./scripts/check-codex-parity.sh
+
+      - name: Measure upstream drift
+        id: drift
+        shell: bash
+        run: |
+          git remote add upstream https://github.com/rjwalters/loom.git 2>/dev/null || \
+            git remote set-url upstream https://github.com/rjwalters/loom.git
+          git fetch --quiet upstream main
+          behind="$(git rev-list --count HEAD..upstream/main)"
+          ahead="$(git rev-list --count upstream/main..HEAD)"
+          echo "behind=$behind" >> "$GITHUB_OUTPUT"
+          echo "ahead=$ahead" >> "$GITHUB_OUTPUT"
+          echo "Loomdex is $behind upstream commit(s) behind and $ahead commit(s) ahead." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Open upstream-sync issue
+        if: steps.drift.outputs.behind != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BEHIND: ${{ steps.drift.outputs.behind }}
+          AHEAD: ${{ steps.drift.outputs.ahead }}
+        shell: bash
+        run: |
+          title="chore: sync upstream Loom updates"
+          existing="$(gh issue list --state open --search "\"$title\" in:title" --json title --jq ".[] | select(.title == \"$title\") | .title" | head -1)"
+          if [[ -n "$existing" ]]; then
+            echo "An upstream-sync issue is already open."
+            exit 0
+          fi
+          label_args=()
+          if gh label list --limit 200 --json name --jq '.[].name' | grep -Fxq 'loom:operator-only'; then
+            label_args=(--label "loom:operator-only")
+          fi
+          gh issue create \
+            --title "$title" \
+            "${label_args[@]}" \
+            --body "Upstream drift check found **$BEHIND** new commit(s) on \`rjwalters/loom:main\`. Loomdex currently has **$AHEAD** fork-only commit(s). Follow \`docs/guides/upstream-sync.md\`, merge upstream, resolve adapter hotspots, and run the full parity suite."

@@ -1,5 +1,6 @@
 name = "loom-judge"
 description = "Reviews Loom pull requests labeled loom:review-requested and applies the outcome label."
+model_reasoning_effort = "high"
 developer_instructions = """
 Act as Loom Judge. Read .claude/agents/loom-judge.md and .claude/commands/loom/judge.md completely and follow them as the canonical workflow. Map legacy Claude tool names to Codex tools. Verify code and CI, post findings, and perform the required atomic label transition.
 """

@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Complete Codex role and automation surface** — all Loom roles now ship as project-scoped Codex custom agents, consumer installs include Codex-native support-role GitHub Actions, and the launcher supports independently authenticated account pools through `LOOM_CODEX_HOMES_DIR` / `LOOM_CODEX_HOME`.
+- **Codex launcher regression coverage** — verifies prompt translation, safe handling of legacy Claude model aliases, explicit Codex model forwarding, and deterministic account-profile selection.
+- **Upstream drift guard** — a scheduled workflow measures divergence from `rjwalters/loom`, runs Codex adapter parity checks, and opens a single operator issue when a reviewed merge is needed.
+
+### Changed
+
+- **Codex-native model handling** — Claude aliases and model IDs in the shared workflow specifications are treated as capability hints and no longer forwarded to `codex exec`; Codex agents inherit the active model while role-specific reasoning effort remains explicit.
+- **Scheduled support roles use the official Codex GitHub Action** — Judge, Curator, Champion, Auditor, and Guide now authenticate with `OPENAI_API_KEY` and run through `openai/codex-action@v1`.
+
 ## [0.10.6] - 2026-07-11
 
 ### Summary

@@ -412,7 +412,7 @@ fn handle_cli_command(command: Commands) -> Result<()> {
                         println!("\nSelf-installation skips file copying to prevent data loss.");
                         println!("   The Loom repo's .loom/ directory IS the source of truth.");
                         println!("\nTo use Loom orchestration:");
-                        println!("  - Open Claude Code terminals with /builder, /judge, etc.");
+                        println!("  - Open Codex and use $loom-sweep or $loom");
                         println!("  - Or start the daemon: ./.loom/scripts/daemon.sh start");
 
                         return Ok(());
@@ -424,8 +424,9 @@ fn handle_cli_command(command: Commands) -> Result<()> {
                     println!("  .loom/config.json - Terminal configuration");
                     println!("  .loom/roles/    - Agent role definitions");
                     println!("  CLAUDE.md       - AI context documentation");
-                    println!("  .claude/        - Claude Code configuration");
-                    println!("  .codex/         - Codex configuration");
+                    println!("  .agents/        - Codex workflow skills");
+                    println!("  .codex/         - Codex custom role agents");
+                    println!("  .claude/        - Canonical workflows and Claude compatibility");
                     println!("  .github/        - GitHub labels and issue templates");
                     println!("  .gitignore      - Updated with Loom patterns");
 
@@ -487,11 +488,11 @@ fn handle_cli_command(command: Commands) -> Result<()> {
                     );
                     println!("  2. Choose your workflow:");
                     println!("     Manual Mode (recommended to start):");
-                    println!("       cd {workspace_str} && claude");
-                    println!("       Then use /builder, /judge, or other role commands");
+                    println!("       cd {workspace_str} && codex");
+                    println!("       Then use $loom-sweep <issue-number> or $loom");
                     println!("     Daemon Mode (autonomous orchestration):");
                     println!("       cd {workspace_str} && ./.loom/scripts/daemon.sh start");
-                    println!("       Then in Claude Code: /loom");
+                    println!("       Then in Codex: $loom");
                     Ok(())
                 }
                 Err(e) => {

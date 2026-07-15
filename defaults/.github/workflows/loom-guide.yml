@@ -1,0 +1,20 @@
+name: Loom Guide
+on:
+  # schedule:
+  #   - cron: "*/15 * * * *"
+  workflow_dispatch:
+jobs:
+  guide:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions: { contents: write, issues: write, pull-requests: read }
+    steps:
+      - uses: actions/checkout@v7
+      - uses: openai/codex-action@v1
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          prompt: Use $loom to run one Guide tick and update backlog guidance without implementing work.
+          effort: medium
+          sandbox: danger-full-access

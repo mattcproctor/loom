@@ -4,7 +4,7 @@
 # AGENT USAGE INSTRUCTIONS:
 #   This script installs Loom orchestration into a target Git repository.
 #
-#   Non-interactive mode (for Claude Code):
+#   Non-interactive mode (for Codex and CI):
 #     ./scripts/install-loom.sh --yes /path/to/target-repo
 #     ./scripts/install-loom.sh -y /path/to/target-repo
 #
@@ -1752,9 +1752,9 @@ echo ""
 
 header "What's Included:"
 echo "  ✅ .loom/ directory with configuration and scripts"
-echo "  ✅ .claude/ directory with slash commands"
-echo "  ✅ .github/ directory with labels and issue templates"
-echo "  ✅ CLAUDE.md documentation"
+echo "  ✅ .agents/ skills and .codex/ custom role agents"
+echo "  ✅ .github/ labels, issue templates, and Codex workflows"
+echo "  ✅ AGENTS.md guidance (with Claude compatibility retained)"
 echo ""
 
 header "Next Steps:"
@@ -1764,12 +1764,12 @@ case "$MERGE_STATUS" in
     echo "  Loom is ready to use! Choose your workflow:"
     echo ""
     echo "  Manual Mode (recommended to start):"
-    echo "    cd $TARGET_PATH && claude"
-    echo "    Then use /builder, /judge, or other role commands"
+    echo "    cd $TARGET_PATH && codex"
+    echo '    Then use $loom-sweep <issue-number> or $loom'
     echo ""
     echo "  Daemon Mode (autonomous orchestration):"
     echo "    cd $TARGET_PATH && ./.loom/scripts/daemon.sh start"
-    echo "    Then in Claude Code: /loom"
+    echo '    Then in Codex: $loom'
     ;;
   auto)
     # Auto-merge enabled - PR will merge once requirements are met
@@ -1779,23 +1779,23 @@ case "$MERGE_STATUS" in
     echo "  Once merged, choose your workflow:"
     echo ""
     echo "  Manual Mode (recommended to start):"
-    echo "    cd $TARGET_PATH && claude"
-    echo "    Then use /builder, /judge, or other role commands"
+    echo "    cd $TARGET_PATH && codex"
+    echo '    Then use $loom-sweep <issue-number> or $loom'
     echo ""
     echo "  Daemon Mode (autonomous orchestration):"
     echo "    cd $TARGET_PATH && ./.loom/scripts/daemon.sh start"
-    echo "    Then in Claude Code: /loom"
+    echo '    Then in Codex: $loom'
     ;;
   *)
     # Manual merge required
     echo "  1. Review and merge the pull request: ${PR_URL}"
     echo "  2. Choose your workflow:"
     echo "     Manual Mode (recommended to start):"
-    echo "       cd $TARGET_PATH && claude"
-    echo "       Then use /builder, /judge, or other role commands"
+    echo "       cd $TARGET_PATH && codex"
+    echo '       Then use $loom-sweep <issue-number> or $loom'
     echo "     Daemon Mode (autonomous orchestration):"
     echo "       cd $TARGET_PATH && ./.loom/scripts/daemon.sh start"
-    echo "       Then in Claude Code: /loom"
+    echo '       Then in Codex: $loom'
     ;;
 esac
 echo ""

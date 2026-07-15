@@ -10,8 +10,8 @@
 //! - A `Sweep` resource type (see [`crate::types::SweepInfo`]).
 //! - In-memory `BTreeMap<SweepId, SweepInfo>` storage.
 //! - `dispatch_sweep` primitive that shells out to
-//!   `defaults/scripts/spawn-claude.sh` (NOT a Rust re-implementation of
-//!   token rotation) and detaches a `claude -p "/loom:sweep N"` child.
+//!   `defaults/scripts/spawn-codex.sh` and detaches a Codex `$loom-sweep N`
+//!   child. The launcher owns optional `CODEX_HOME` profile selection.
 //! - `list_sweeps` query with optional state filtering.
 //! - Atomic `mkdir`-based claim locks under `.loom/locks/issue-<N>/`,
 //!   matching the spawn-loop primitive at
@@ -63,7 +63,7 @@ pub const DEFAULT_REAPER_INTERVAL_SECS: u64 = 30;
 pub const REAPER_INTERVAL_ENV: &str = "LOOM_SWEEP_REAPER_INTERVAL_SECS";
 
 /// Environment variable for overriding the dispatch entry point used by
-/// the registry. Defaults to `defaults/scripts/spawn-claude.sh` relative to
+/// the registry. Defaults to `defaults/scripts/spawn-codex.sh` relative to
 /// the workspace. Used by integration tests to substitute a fake child.
 pub const SPAWN_BIN_ENV: &str = "LOOM_SWEEP_SPAWN_BIN";
 
@@ -288,7 +288,7 @@ impl SweepRegistry {
     /// On idempotency hit returns the existing entry with `was_new = false`.
     ///
     /// `model` (issue #3477): when `Some` and non-empty, the spawned child
-    /// receives `--model <value>` appended to the `spawn-claude.sh` argv.
+    /// receives `--model <value>` appended to the `spawn-codex.sh` argv.
     /// When `None`, no `--model` flag is emitted at all — the session/CLI
     /// default is preserved end-to-end.
     pub fn dispatch(
@@ -553,7 +553,7 @@ impl SweepRegistry {
         cmd.arg("-p").arg(&prompt);
         // Model selection (issue #3477, Phase 1): the dispatch-param tier of
         // the precedence chain. Appended as an explicit `--model` arg (which
-        // beats any ambient LOOM_MODEL env inside spawn-claude.sh). Empty
+        // beats any ambient LOOM_CODEX_MODEL env inside spawn-codex.sh). Empty
         // strings are treated as unset — `--model ""` must never be emitted.
         if let Some(m) = model {
             if !m.is_empty() {
@@ -562,9 +562,8 @@ impl SweepRegistry {
         }
         cmd.env("LOOM_TERMINAL_ID", format!("daemon-{sweep_id}"))
             // Always pin LOOM_WORKSPACE to the registry's configured root so
-            // spawn-claude.sh resolves `.loom/tokens/` from the same place
-            // the daemon thinks the workspace is — never inheriting an
-            // ambient value that might point elsewhere.
+            // spawn-codex.sh resolves repo-scoped skills and account-pool
+            // configuration from the same workspace as the daemon.
             .env(WORKSPACE_ENV, &self.config.workspace_root)
             .stdin(Stdio::null())
             .stdout(Stdio::from(log_file))
@@ -575,9 +574,9 @@ impl SweepRegistry {
             .with_context(|| format!("failed to spawn {} -p '{}'", spawn_bin.display(), prompt))?;
         let pid = child.id();
         // We do NOT wait on the child — detach by dropping the handle. The
-        // reaper detects exit via `kill(pid, 0)`. spawn-claude.sh internally
-        // selects a token; we record "unknown" here because the wrapper's
-        // selection is logged to the per-sweep log, not exposed on stdout.
+        // reaper detects exit via `kill(pid, 0)`. spawn-codex.sh may select a
+        // CODEX_HOME profile; we retain the legacy token_name field as
+        // "unknown" because credential identity is not exposed on stdout.
         std::mem::drop(child);
 
         Ok((pid, "unknown".to_string()))

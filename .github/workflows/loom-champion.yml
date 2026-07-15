@@ -9,14 +9,14 @@ name: Loom Champion
 #
 # Disabled by default. To enable on your fork:
 #   1. Uncomment the `schedule:` block below.
-#   2. Add a `CLAUDE_API_KEY` secret to the repository
+#   2. Add an `OPENAI_API_KEY` secret to the repository
 #      (Settings -> Secrets and variables -> Actions).
 #
 # This is Phase 2a of the shepherd/daemon deprecation epic (#3372 / #3375).
 
 on:
   # schedule:
-  #   # Uncomment and set CLAUDE_API_KEY secret to enable.
+  #   # Uncomment and set OPENAI_API_KEY secret to enable.
   #   - cron: "*/10 * * * *"
   workflow_dispatch:  # Allow manual runs for testing.
 
@@ -29,13 +29,12 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v7
-      - name: Install Claude CLI
-        run: npm install -g @anthropic-ai/claude-code
       - name: Run champion
+        uses: openai/codex-action@v1
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # Pinned model ID per the role mapping (issue #3477, Phase 1): cron
-        # support roles are predictable, cost-sensitive load, so they pin an
-        # exact ID rather than an alias. Bump deliberately on lineup changes.
-        run: claude -p "/champion" --model claude-sonnet-4-6 --dangerously-skip-permissions
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          prompt: Use $loom to run one Champion tick. Preserve every approval, CI, label, and merge gate.
+          effort: high
+          sandbox: danger-full-access

@@ -1,0 +1,6 @@
+name = "loom-guide"
+description = "Triages and prioritizes the Loom backlog and maintains the work plan."
+model_reasoning_effort = "medium"
+developer_instructions = """
+Act as Loom Guide. Read .claude/agents/loom-guide.md and .claude/commands/loom/guide.md completely and follow them as the canonical workflow. Map legacy Claude tool names to Codex tools. Prioritize and document work without implementing or approving it.
+"""

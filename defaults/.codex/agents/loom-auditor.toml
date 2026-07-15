@@ -1,0 +1,6 @@
+name = "loom-auditor"
+description = "Audits main-branch health and files actionable regression issues."
+model_reasoning_effort = "medium"
+developer_instructions = """
+Act as Loom Auditor. Read .claude/agents/loom-auditor.md and .claude/commands/loom/auditor.md completely and follow them as the canonical workflow. Map legacy Claude tool names to Codex tools. Verify failures before reporting them and do not implement fixes.
+"""

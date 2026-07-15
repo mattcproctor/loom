@@ -1,14 +1,13 @@
 # Loomdex
 
-[![codecov](https://codecov.io/gh/rjwalters/loom/branch/main/graph/badge.svg)](https://codecov.io/gh/rjwalters/loom)
-[![GitHub Release](https://img.shields.io/github/v/release/rjwalters/loom?include_prereleases)](https://github.com/rjwalters/loom/releases)
-[![Lines of Code](https://raw.githubusercontent.com/rjwalters/loom/ghloc/.ghloc/badge.svg)](https://github.com/rjwalters/loom)
+[![GitHub Release](https://img.shields.io/github/v/release/mattcproctor/loom?include_prereleases)](https://github.com/mattcproctor/loom/releases)
+[![Upstream](https://img.shields.io/badge/upstream-rjwalters%2Floom-blue)](https://github.com/rjwalters/loom)
 
-**Codex-powered development orchestration using your forge as the coordination layer.**
+**Codex-native development orchestration using your forge as the coordination layer.**
 
 Loomdex spawns Codex agents that claim issues, implement features, review PRs, and merge code -- all coordinated through labels. Your only job: write issues, review PRs, and merge what you like.
 
-This fork adds Codex-native skills, custom role agents, `AGENTS.md` discovery, and `codex exec` daemon dispatch. The existing `.claude` workflow documents remain the canonical role specifications during the transition and are consumed by the Codex skills; Claude compatibility is retained for existing installations.
+This fork adds Codex-native skills, a complete custom-role set, `AGENTS.md` discovery, `codex exec` daemon dispatch, Codex account-profile rotation, and Codex GitHub Actions. The existing `.claude` workflow documents remain provider-neutral canonical specifications and are consumed by the Codex skills; Claude compatibility is retained for existing installations.
 
 **Supported Forges**: GitHub | Gitea — Loom auto-detects your forge from the git remote URL. A ForgeClient abstraction layer makes the workflow identical regardless of forge.
 
@@ -47,7 +46,7 @@ LOOM_USE_SPAWN_LOOP=1 ./.loom/scripts/spawn-loop.sh start
 └─────────────────────────────────────────────────────────────────┘
                               │
 ┌─────────────────────────────────────────────────────────────────┐
-│        Tier 1: /loom:sweep <issue>                              │
+│        Tier 1: $loom-sweep <issue>                              │
 │  Single-issue lifecycle: Curator → Builder → Judge → Doctor →   │
 │  Merge. Checkpoints survive crashes.                            │
 └─────────────────────────────────────────────────────────────────┘
@@ -88,7 +87,7 @@ See [WORKFLOWS.md](docs/workflows.md) for complete label documentation.
 
 **Developer Experience**
 - Git worktree isolation per issue
-- Simple slash command: `/loom:sweep 42` runs a single issue end-to-end
+- Simple skill invocation: `$loom-sweep 42` runs a single issue end-to-end
 - MCP integration for programmatic control (19 tools)
 - Graceful shutdown: `touch .loom/stop-spawn-loop`
 
@@ -147,17 +146,17 @@ your-repo/
 
 ### Single-Issue Mode
 
-To orchestrate one issue end-to-end from inside Claude Code:
+To orchestrate one issue end-to-end from Codex:
 
 ```text
-/loom:sweep 42          # Curator → Builder → Judge → Doctor → Merge
-/loom:sweep --prs 123   # PR-set mode: Judge / Doctor → Judge / Merge from an open-PR set
+$loom-sweep 42          # Curator → Builder → Judge → Doctor → Merge
+$loom-sweep --prs 123   # PR-set mode: Judge / Doctor → Judge / Merge from an open-PR set
 ```
 
 From a script:
 
 ```bash
-claude -p "/loom:sweep 42" --dangerously-skip-permissions
+codex exec --sandbox danger-full-access 'Use $loom-sweep 42'
 ```
 
 Sweep is self-contained — there is no separate daemon to start. Checkpoints under `.loom/sweep-checkpoint/` survive crashes; restarting the sweep resumes from the last completed phase.
@@ -172,17 +171,17 @@ LOOM_USE_SPAWN_LOOP=1 ./.loom/scripts/spawn-loop.sh start
 ./.loom/scripts/spawn-loop.sh stop                  # or: touch .loom/stop-spawn-loop
 ```
 
-The spawn loop polls `loom:issue`, atomically claims ready items, and detaches one `/loom:sweep N` child per issue (up to `MAX_PARALLEL`, default 3). Each spawn picks its own OAuth token via `spawn-claude.sh` for multi-account rotation. The loop has no work-generation triggers — see the [GitHub Actions cron workflows](.github/workflows/) for periodic Champion / Curator / Judge / Auditor / Guide ticks (Phase 2a, opt-in per workflow).
+The spawn loop polls `loom:issue`, atomically claims ready items, and detaches one `$loom-sweep N` child per issue (up to `MAX_PARALLEL`, default 3). With `LOOM_CODEX_HOMES_DIR` set, children distribute across independently authenticated Codex homes. The loop has no work-generation triggers — see the [GitHub Actions cron workflows](.github/workflows/) for periodic Champion / Curator / Judge / Auditor / Guide ticks (opt-in per workflow).
+
+For multi-account local execution, create one child directory per account, configure `cli_auth_credentials_store = "file"`, run `CODEX_HOME=<child> codex login` for each, and export `LOOM_CODEX_HOMES_DIR` to their parent directory. Alternatively, set `LOOM_CODEX_HOME` to pin one authenticated home. Never commit these directories.
 
 ### Individual Agent Commands
 
 Run worker agents directly (no daemon required):
 
 ```bash
-/builder 42        # Implement issue 42
-/judge 123         # Review PR #123
-/curator 42        # Enhance issue with technical details
-/doctor 123        # Fix PR feedback or conflicts
+$loom-sweep 42     # Full lifecycle
+$loom              # Select and run an individual Loom role
 ```
 
 ### Worktree Workflow
@@ -233,7 +232,7 @@ gh pr create --label "loom:review-requested"
 
 ```bash
 # Clone and setup
-git clone https://github.com/rjwalters/loom
+git clone https://github.com/mattcproctor/loom
 cd loom
 
 # Run the daemon in dev mode
@@ -247,6 +246,10 @@ cargo build --package loom-daemon --release
 ```
 
 See [DEVELOPMENT.md](docs/guides/development.md) for complete guidelines.
+
+### Syncing from upstream Loom
+
+Loomdex intentionally stays close to `rjwalters/loom`. Upstream changes are merged—not rebased—then validated against the Codex parity checks. See [Keeping Loomdex Current](docs/guides/upstream-sync.md).
 
 ## Bootstrap New Projects
 
